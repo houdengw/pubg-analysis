@@ -45,9 +45,10 @@ public class HttpApiService {
         // 声明 http get 请求
         HttpGet httpGet = new HttpGet(url);
 
+        httpGet.setHeader("Accept","application/vnd.api+json");
+        httpGet.setHeader("Authorization","Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJmZDA1NGUxMC0zNjU3LTAxMzYtMDVlNy03ZGM0MmNhOWYyNjgiLCJpc3MiOiJnYW1lbG9ja2VyIiwiaWF0IjoxNTI1OTQwMDI3LCJwdWIiOiJibHVlaG9sZSIsInRpdGxlIjoicHViZyIsImFwcCI6Im15cHViZy1iNzdmOGE3Zi01NTUxLTQ1NDktYTNlYi05Yjk3MTE5OGM5ZWIiLCJzY29wZSI6ImNvbW11bml0eSIsImxpbWl0IjoxMH0.JuPjAlo1UH-UWxZVmufmXsP9tnCrWTdbesJ9oHBhQC8");
         // 装载配置信息
-        httpGet.setConfig(config);
-
+        //httpGet.setConfig(config);
         // 发起请求
         CloseableHttpResponse response = this.httpClient.execute(httpGet);
 
