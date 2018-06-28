@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.evils.PubgAnalysisApplicationTests;
 import com.evils.base.ApiResponse;
+import com.evils.base.ElasticSearchApiService;
 import com.evils.base.HttpApiService;
 import com.evils.base.HttpUrlConnectionApiService;
 import com.evils.entity.PlayerDetailSingleMatchDTO;
@@ -16,8 +17,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
+import java.util.TimeZone;
 
 /**
  * Title: evils
@@ -30,6 +35,9 @@ public class HttpApiServiceTests extends PubgAnalysisApplicationTests {
 
     @Autowired
     private HttpApiService httpApiService;
+
+    @Autowired
+    private ElasticSearchApiService elasticSearchApiService;
 
     @Test
     public void ww() throws Exception {
@@ -73,10 +81,11 @@ public class HttpApiServiceTests extends PubgAnalysisApplicationTests {
     }
 
     @Test
-    public void test2() {
+    public void test2() throws IOException {
+        String playerName = "DuiZhangBie_KQ";
         ArrayList<String> matchList = new ArrayList<>();
         ArrayList<PlayerDetailSingleMatchDTO> matchesByPlayerList = new ArrayList<PlayerDetailSingleMatchDTO>();
-        String url = "https://api.playbattlegrounds.com/shards/pc-as/players?filter[playerNames]=hahahouhuhu";
+        String url = "https://api.playbattlegrounds.com/shards/pc-as/players?filter[playerNames]="+playerName;
         long startTime=System.currentTimeMillis();
         ApiResponse apiResponse = HttpUrlConnectionApiService.doGet(url, null);
         long endTime=System.currentTimeMillis();
@@ -94,14 +103,14 @@ public class HttpApiServiceTests extends PubgAnalysisApplicationTests {
             ApiResponse matchApiResponse = HttpUrlConnectionApiService.doGet(matchUrl, null);
             JSONObject matchDetail = JSON.parseObject(matchApiResponse.getData()+"");
             String matchTime = matchDetail.getJSONObject("data").getJSONObject("attributes").getString("createdAt");
-            playerDetailSingleMatchDTO.setMatchTime(matchTime);
+            playerDetailSingleMatchDTO.setMatchTime(utc2Local(matchTime,"yyyy-MM-dd'T'HH:mm:ss'Z'","yyyy-MM-dd HH:mm:ss"));
             JSONArray players = matchDetail.getJSONArray("included");
 
 
             for(Iterator iterator = players.iterator(); iterator.hasNext();){
                 JSONObject player = (JSONObject)iterator.next();
                 if("participant".equals(player.getString("type"))){
-                    if("hahahouhuhu".equals(player.getJSONObject("attributes").getJSONObject("stats").getString("name"))){
+                    if(playerName.equals(player.getJSONObject("attributes").getJSONObject("stats").getString("name"))){
                         JSONObject stats = player.getJSONObject("attributes").getJSONObject("stats");
                         playerDetailSingleMatchDTO.setName(stats.getString("name"));
                         playerDetailSingleMatchDTO.setDamageDealt(stats.getString("damageDealt"));
@@ -121,7 +130,12 @@ public class HttpApiServiceTests extends PubgAnalysisApplicationTests {
 
         for(PlayerDetailSingleMatchDTO playerDetailSingleMatchDTO :matchesByPlayerList){
             System.out.println("比赛时间:"+playerDetailSingleMatchDTO.getMatchTime()+" 击杀:"+playerDetailSingleMatchDTO.getKills()+" 击倒:"+playerDetailSingleMatchDTO.getKillStreaks()+" 伤害:"+playerDetailSingleMatchDTO.getDamageDealt()+" 排名:"+playerDetailSingleMatchDTO.getWinPlace());
+
         }
+
+        elasticSearchApiService.bulkCreateDocuments("pubg","playersinglematch",matchesByPlayerList);
+
+
 
     }
 
@@ -139,5 +153,27 @@ public class HttpApiServiceTests extends PubgAnalysisApplicationTests {
         System.out.println(apiResponse.getData());
     }
 
+    /**
+     * UTC to local
+     * @param utcTime
+     * @param utcTimePatten
+     * @param localTimePatten
+     * @return
+     */
+    private  String utc2Local(String utcTime, String utcTimePatten, String localTimePatten) {
+        SimpleDateFormat utcFormater = new SimpleDateFormat(utcTimePatten);
+        utcFormater.setTimeZone(TimeZone.getTimeZone("UTC"));//时区定义并进行时间获取
+        Date gpsUTCDate = null;
+        try {
+            gpsUTCDate = utcFormater.parse(utcTime);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return utcTime;
+        }
+        SimpleDateFormat localFormater = new SimpleDateFormat(localTimePatten);
+        localFormater.setTimeZone(TimeZone.getDefault());
+        String localTime = localFormater.format(gpsUTCDate.getTime());
+        return localTime;
+    }
 
 }

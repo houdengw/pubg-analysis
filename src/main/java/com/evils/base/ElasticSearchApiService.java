@@ -1,7 +1,10 @@
 package com.evils.base;
 
+import com.evils.entity.PlayerDetailSingleMatchDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
@@ -10,7 +13,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Map;
+import java.util.UUID;
+
+import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 /**
  * Title: evils
@@ -66,6 +74,41 @@ public class ElasticSearchApiService {
         IndexResponse response = this.client.prepareIndex(indexName, typeName).setSource(json).get();
         if (response.status().getStatus() != 200) {
             logger.warn("创建索引文档{}失败,原因:{}", indexName, response.toString());
+        }
+    }
+
+    /**
+     * 批量增加数据
+     * @param indexName
+     * @param typeName
+     */
+    public void bulkCreateDocuments(String indexName, String typeName, ArrayList<PlayerDetailSingleMatchDTO> playerDetailSingleMatchDTOS) throws IOException {
+        BulkRequestBuilder bulkRequest = client.prepareBulk();
+
+        for(PlayerDetailSingleMatchDTO playerDetailSingleMatchDTO:playerDetailSingleMatchDTOS){
+            bulkRequest.add(client.prepareIndex(indexName, typeName, UUID.randomUUID().toString())
+                    .setSource(jsonBuilder()
+                            .startObject()
+                            .field("accountid", playerDetailSingleMatchDTO.getAccountId())
+                            .field("name", playerDetailSingleMatchDTO.getName())
+                            .field("winPlace", playerDetailSingleMatchDTO.getWinPlace())
+                            .field("matchId",playerDetailSingleMatchDTO.getMatchId())
+                            .field("kills",playerDetailSingleMatchDTO.getKills())
+                            .field("killStreaks",playerDetailSingleMatchDTO.getKillStreaks())
+                            .field("damageDealt",playerDetailSingleMatchDTO.getDamageDealt())
+                            .field("headshotKills",playerDetailSingleMatchDTO.getHeadshotKills())
+                            .field("winPointsDelta",playerDetailSingleMatchDTO.getWinPointsDelta())
+                            .field("matchTime",playerDetailSingleMatchDTO.getMatchTime())
+                            .endObject()
+                    )
+            );
+
+        }
+
+
+        BulkResponse bulkResponse = bulkRequest.get();
+        if (bulkResponse.hasFailures()) {
+            logger.error("transfer failed");
         }
     }
 
