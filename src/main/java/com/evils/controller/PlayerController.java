@@ -36,7 +36,7 @@ public class PlayerController {
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     public ApiResponse initPlayer(String playerName, String nickName) {
         //1.本地创建玩家
-        Player player = new Player(getAccountId(playerName), playerName, nickName);
+        Player player = new Player("", playerName, nickName);
         player = playerService.savePlayer(player);
 
         //ToDo 使用消息队列的方式 初始化玩家的AccoundId
@@ -46,20 +46,6 @@ public class PlayerController {
         return ApiResponse.ofSuccess(player);
     }
 
-    /**
-     * 请求pubg API 获取AccountId
-     * @param playerName
-     * @return
-     */
-    private String getAccountId(String playerName) {
-        String url = "https://api.playbattlegrounds.com/shards/pc-as/players?filter[playerNames]=" + playerName;
-        ApiResponse apiResponse = HttpUrlConnectionApiService.doGet(url, null);
-        if (apiResponse.getCode() == 200) {
-            JSONObject playerJson = JSON.parseObject(apiResponse.getData() + "");
-            String accountId = playerJson.getJSONArray("data").getJSONObject(0).getString("id");
-            return accountId;
-        }
-        return null;
-    }
+
 
 }

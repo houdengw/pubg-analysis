@@ -16,4 +16,6 @@ public interface IPlayerService {
     List<Player> findAllPlayers();
 
     Player savePlayer(Player player);
+
+    List<Player> findPlayer(String name);
 }
