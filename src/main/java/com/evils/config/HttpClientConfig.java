@@ -65,41 +65,13 @@ public class HttpClientConfig {
         return httpClientBuilder;
     }
 
-//    @Bean(name = "sslSocketFactory")
-//    public SSLConnectionSocketFactory sslSocketFactory() {
-//        SSLContext sslContext = null;
-//        try {
-//            sslContext = new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy() {
-//                //信任所有
-//                @Override
-//                public boolean isTrusted(X509Certificate[] xcs, String string) {
-//                    return true;
-//                }
-//            }).build();
-//            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext);
-//            return sslsf;
-//        } catch (NoSuchAlgorithmException e) {
-//            e.printStackTrace();
-//        } catch (KeyManagementException e) {
-//            e.printStackTrace();
-//        } catch (KeyStoreException e) {
-//            e.printStackTrace();
-//        }
-//
-//        return null;
-//    }
-
 
     @Bean
     public CloseableHttpClient getCloseableHttpClient(@Qualifier("httpClientBuilder") HttpClientBuilder
                                                               httpClientBuilder) {
         return httpClientBuilder.build();
     }
-//    @Bean
-//    public CloseableHttpClient getCloseableHttpClient(@Qualifier("sslSocketFactory") SSLConnectionSocketFactory
-//                                                              sslSocketFactory) {
-//        return HttpClients.custom().setSSLSocketFactory(sslSocketFactory).build();
-//    }
+
 
 
     @Bean(name = "builder")

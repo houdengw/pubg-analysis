@@ -1,6 +1,10 @@
 package com.evils.controller;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.evils.base.ApiResponse;
+import com.evils.base.HttpUrlConnectionApiService;
+import com.evils.entity.Player;
 import com.evils.service.impl.PlayerServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,25 +20,46 @@ import org.springframework.web.bind.annotation.RestController;
  * @version 1.0
  */
 @RestController
-@RequestMapping("/player")
+@RequestMapping("/players")
 public class PlayerController {
 
     @Autowired
     private PlayerServiceImpl playerService;
 
     @ResponseBody
-    public ApiResponse getPlayers(){
+    @RequestMapping(value = "/list", method = RequestMethod.GET)
+    public ApiResponse getPlayers() {
         return ApiResponse.ofSuccess(playerService.findAllPlayers());
     }
 
     @ResponseBody
-    @RequestMapping(method = RequestMethod.POST)
-    public ApiResponse initPlayer(){
+    @RequestMapping(value = "/add", method = RequestMethod.POST)
+    public ApiResponse initPlayer(String playerName, String nickName) {
         //1.本地创建玩家
+        Player player = new Player(getAccountId(playerName), playerName, nickName);
+        player = playerService.savePlayer(player);
 
-        //2.初始化玩家数据 保存到ES
+        //ToDo 使用消息队列的方式 初始化玩家的AccoundId
 
-        return ApiResponse.ofSuccess(null);
+        //ToDo 使用消息队列的方式 初始化玩家数据 保存到ES
+
+        return ApiResponse.ofSuccess(player);
+    }
+
+    /**
+     * 请求pubg API 获取AccountId
+     * @param playerName
+     * @return
+     */
+    private String getAccountId(String playerName) {
+        String url = "https://api.playbattlegrounds.com/shards/pc-as/players?filter[playerNames]=" + playerName;
+        ApiResponse apiResponse = HttpUrlConnectionApiService.doGet(url, null);
+        if (apiResponse.getCode() == 200) {
+            JSONObject playerJson = JSON.parseObject(apiResponse.getData() + "");
+            String accountId = playerJson.getJSONArray("data").getJSONObject(0).getString("id");
+            return accountId;
+        }
+        return null;
     }
 
 }

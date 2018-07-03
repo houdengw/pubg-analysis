@@ -42,7 +42,7 @@ public class HttpUrlConnectionApiService {
             httpUrlConnection.setUseCaches(false);
             // 设定请求的方法为"POST"，默认是GET
             httpUrlConnection.setRequestMethod("POST");
-            // 设置PUBG所需header
+            //TODO 需作为参数传入 不能在通用方法里写死 设置PUBG所需header
             httpUrlConnection.setRequestProperty("Authorization","Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJmZDA1NGUxMC0zNjU3LTAxMzYtMDVlNy03ZGM0MmNhOWYyNjgiLCJpc3MiOiJnYW1lbG9ja2VyIiwiaWF0IjoxNTI1OTQwMDI3LCJwdWIiOiJibHVlaG9sZSIsInRpdGxlIjoicHViZyIsImFwcCI6Im15cHViZy1iNzdmOGE3Zi01NTUxLTQ1NDktYTNlYi05Yjk3MTE5OGM5ZWIiLCJzY29wZSI6ImNvbW11bml0eSIsImxpbWl0IjoxMH0.JuPjAlo1UH-UWxZVmufmXsP9tnCrWTdbesJ9oHBhQC8");
             httpUrlConnection.setRequestProperty("Accept", "application/vnd.api+json");
 
@@ -158,7 +158,7 @@ public class HttpUrlConnectionApiService {
             httpUrlConnection.setUseCaches(false);
             // 设定请求的方法为"POST"，默认是GET
             httpUrlConnection.setRequestMethod("GET");
-            // 设置PUBG所需header
+            //TODO 需作为参数传入 不能在通用方法里写死 设置PUBG所需header
             httpUrlConnection.setRequestProperty("Authorization","Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJmZDA1NGUxMC0zNjU3LTAxMzYtMDVlNy03ZGM0MmNhOWYyNjgiLCJpc3MiOiJnYW1lbG9ja2VyIiwiaWF0IjoxNTI1OTQwMDI3LCJwdWIiOiJibHVlaG9sZSIsInRpdGxlIjoicHViZyIsImFwcCI6Im15cHViZy1iNzdmOGE3Zi01NTUxLTQ1NDktYTNlYi05Yjk3MTE5OGM5ZWIiLCJzY29wZSI6ImNvbW11bml0eSIsImxpbWl0IjoxMH0.JuPjAlo1UH-UWxZVmufmXsP9tnCrWTdbesJ9oHBhQC8");
             httpUrlConnection.setRequestProperty("Accept", "application/vnd.api+json");
 

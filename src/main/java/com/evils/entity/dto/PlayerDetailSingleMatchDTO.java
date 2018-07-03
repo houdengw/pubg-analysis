@@ -1,6 +1,4 @@
-package com.evils.entity;
-
-import java.util.Date;
+package com.evils.entity.dto;
 
 /**
  * Title: evils
@@ -16,10 +14,10 @@ public class PlayerDetailSingleMatchDTO {
     private String name;
     private boolean isWin;
     private String matchId;
-    private String kills;
-    private String killStreaks;
+    private int kills;
+    private int killStreaks;
     private String damageDealt;
-    private String headshotKills;
+    private int headshotKills;
     private String winPointsDelta;
     private String matchTime;
     private int winPlace;
@@ -65,20 +63,12 @@ public class PlayerDetailSingleMatchDTO {
         this.matchId = matchId;
     }
 
-    public String getKills() {
-        return kills;
+    public int getHeadshotKills() {
+        return headshotKills;
     }
 
-    public void setKills(String kills) {
-        this.kills = kills;
-    }
-
-    public String getKillStreaks() {
-        return killStreaks;
-    }
-
-    public void setKillStreaks(String killStreaks) {
-        this.killStreaks = killStreaks;
+    public void setHeadshotKills(int headshotKills) {
+        this.headshotKills = headshotKills;
     }
 
     public String getDamageDealt() {
@@ -89,12 +79,20 @@ public class PlayerDetailSingleMatchDTO {
         this.damageDealt = damageDealt;
     }
 
-    public String getHeadshotKills() {
-        return headshotKills;
+    public int getKills() {
+        return kills;
     }
 
-    public void setHeadshotKills(String headshotKills) {
-        this.headshotKills = headshotKills;
+    public void setKills(int kills) {
+        this.kills = kills;
+    }
+
+    public int getKillStreaks() {
+        return killStreaks;
+    }
+
+    public void setKillStreaks(int killStreaks) {
+        this.killStreaks = killStreaks;
     }
 
     public String getWinPointsDelta() {

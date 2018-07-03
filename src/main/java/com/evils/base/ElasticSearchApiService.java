@@ -1,13 +1,22 @@
 package com.evils.base;
 
-import com.evils.entity.PlayerDetailSingleMatchDTO;
+import com.evils.entity.dto.PlayerDetailSingleMatchDTO;
+import com.evils.entity.form.SearchParam;
+import com.evils.utils.Constants;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +25,9 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.UUID;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
+import static org.elasticsearch.index.query.QueryBuilders.*;
 
 /**
  * Title: evils
@@ -79,14 +88,14 @@ public class ElasticSearchApiService {
 
     /**
      * 批量增加数据
-     * @param indexName
-     * @param typeName
+     * @param playerDetailSingleMatchDTOS
+     * @throws IOException
      */
-    public void bulkCreateDocuments(String indexName, String typeName, ArrayList<PlayerDetailSingleMatchDTO> playerDetailSingleMatchDTOS) throws IOException {
+    public void bulkCreateDocuments(ArrayList<PlayerDetailSingleMatchDTO> playerDetailSingleMatchDTOS) throws IOException {
         BulkRequestBuilder bulkRequest = client.prepareBulk();
 
         for(PlayerDetailSingleMatchDTO playerDetailSingleMatchDTO:playerDetailSingleMatchDTOS){
-            bulkRequest.add(client.prepareIndex(indexName, typeName, UUID.randomUUID().toString())
+            bulkRequest.add(client.prepareIndex(Constants.INDEX_NAME, Constants.TYPE_PLAYER_MATCH_NAME, playerDetailSingleMatchDTO.getAccountId()+"_"+playerDetailSingleMatchDTO.getMatchId())
                     .setSource(jsonBuilder()
                             .startObject()
                             .field("accountid", playerDetailSingleMatchDTO.getAccountId())
@@ -110,6 +119,30 @@ public class ElasticSearchApiService {
         if (bulkResponse.hasFailures()) {
             logger.error("transfer failed");
         }
+    }
+
+    public SearchHits queryDocuments(SearchParam searchParam){
+        BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
+        if(searchParam.getName()!=null&&!"".equals(searchParam.getName())){
+            boolQuery.filter(QueryBuilders.termQuery("name",searchParam.getName()));
+        }
+        if(searchParam.getKills()!=null){
+            boolQuery.filter(QueryBuilders.termQuery("kills",searchParam.getKills()));
+        }
+        if(searchParam.getMatchDate()!=null&&!"".equals(searchParam.getMatchDate())){
+            String mDate = searchParam.getMatchDate();
+            boolQuery.filter(QueryBuilders.rangeQuery("matchTime").gt(mDate+" 00:00:00").lt(mDate+" 23:59:59"));
+        }
+        SearchRequestBuilder requestBuilder = client.prepareSearch(Constants.INDEX_NAME)
+                .setTypes(Constants.TYPE_PLAYER_MATCH_NAME)
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .setQuery(boolQuery)
+                .setFrom(0).setSize(60).setExplain(false);
+        SearchHits searchHits = requestBuilder.get().getHits();
+
+        return searchHits;
+
+
     }
 
 }

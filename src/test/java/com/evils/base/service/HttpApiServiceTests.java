@@ -8,7 +8,9 @@ import com.evils.base.ApiResponse;
 import com.evils.base.ElasticSearchApiService;
 import com.evils.base.HttpApiService;
 import com.evils.base.HttpUrlConnectionApiService;
-import com.evils.entity.PlayerDetailSingleMatchDTO;
+import com.evils.entity.dto.PlayerDetailSingleMatchDTO;
+import com.evils.entity.form.SearchParam;
+import com.evils.utils.Constants;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -114,9 +116,9 @@ public class HttpApiServiceTests extends PubgAnalysisApplicationTests {
                         JSONObject stats = player.getJSONObject("attributes").getJSONObject("stats");
                         playerDetailSingleMatchDTO.setName(stats.getString("name"));
                         playerDetailSingleMatchDTO.setDamageDealt(stats.getString("damageDealt"));
-                        playerDetailSingleMatchDTO.setHeadshotKills(stats.getString("headshotKills"));
-                        playerDetailSingleMatchDTO.setKills(stats.getString("kills"));
-                        playerDetailSingleMatchDTO.setKillStreaks(stats.getString("killStreaks"));
+                        playerDetailSingleMatchDTO.setHeadshotKills(Integer.parseInt(stats.getString("headshotKills")));
+                        playerDetailSingleMatchDTO.setKills(Integer.parseInt(stats.getString("kills")));
+                        playerDetailSingleMatchDTO.setKillStreaks(Integer.parseInt(stats.getString("killStreaks")));
                         playerDetailSingleMatchDTO.setAccountId(stats.getString("playerId"));
                         playerDetailSingleMatchDTO.setWinPlace(Integer.parseInt(stats.getString("winPlace")));
 
@@ -133,7 +135,7 @@ public class HttpApiServiceTests extends PubgAnalysisApplicationTests {
 
         }
 
-        elasticSearchApiService.bulkCreateDocuments("pubg","playersinglematch",matchesByPlayerList);
+        elasticSearchApiService.bulkCreateDocuments(matchesByPlayerList);
 
 
 
@@ -151,6 +153,14 @@ public class HttpApiServiceTests extends PubgAnalysisApplicationTests {
         String url = "https://api.playbattlegrounds.com/shards/pc-as/players/account.33a98c5d521146d48ef01394c63b1e30";
         ApiResponse apiResponse = HttpUrlConnectionApiService.doGet(url, null);
         System.out.println(apiResponse.getData());
+    }
+
+    @Test
+    public void testQuery(){
+        SearchParam searchParam = new SearchParam();
+        //searchParam.setKills(7);
+        searchParam.setName("waiwainaodai");
+        elasticSearchApiService.queryDocuments(searchParam);
     }
 
     /**

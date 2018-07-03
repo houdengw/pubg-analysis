@@ -1,0 +1,24 @@
+{
+  "settings" : {
+    "number_of_shards" : 3,
+    "number_of_replicas" : 0
+
+  },
+  "mappings" : {
+    "playersinglematch" : {
+      "properties" : {
+        "uid":{"type":"text"},
+        "accountid":{"type":"text","fielddata": true},
+        "name" : { "type" : "text","analyzer": "english","fielddata": true},
+        "winPlace" : { "type" : "integer"},
+        "matchId" : { "type" : "text"},
+        "kills" : { "type" : "integer"},
+        "killStreaks" : { "type" : "integer"},
+        "damageDealt" : { "type" : "text","fielddata": true},
+        "headshotKills" : { "type" : "integer"},
+        "winPointsDelta" : { "type" : "text","fielddata": true},
+        "matchTime" :{"type":"date","format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis"}
+      }
+    }
+  }
+}
