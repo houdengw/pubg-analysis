@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @version 1.0
  */
 @Controller
-@RequestMapping(value="/home")
+@RequestMapping(value="/")
 public class HomeController {
 
-    @RequestMapping(value="/test",method = RequestMethod.GET)
+    @RequestMapping(method = RequestMethod.GET)
     public String test(){
         return "test";
     }
