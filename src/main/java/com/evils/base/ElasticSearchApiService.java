@@ -1,6 +1,6 @@
 package com.evils.base;
 
-import com.evils.entity.dto.PlayerDetailSingleMatchDTO;
+import com.evils.entity.PlayerDetailSingleMatchTemplate;
 import com.evils.entity.form.SearchParam;
 import com.evils.utils.Constants;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -9,14 +9,15 @@ import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.sort.SortBuilder;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
-import static org.elasticsearch.index.query.QueryBuilders.*;
 
 /**
  * Title: evils
@@ -88,26 +88,26 @@ public class ElasticSearchApiService {
 
     /**
      * 批量增加数据
-     * @param playerDetailSingleMatchDTOS
+     * @param playerDetailSingleMatchTemplates
      * @throws IOException
      */
-    public void bulkCreateDocuments(ArrayList<PlayerDetailSingleMatchDTO> playerDetailSingleMatchDTOS) throws IOException {
+    public void bulkCreateDocuments(ArrayList<PlayerDetailSingleMatchTemplate> playerDetailSingleMatchTemplates) throws IOException {
         BulkRequestBuilder bulkRequest = client.prepareBulk();
 
-        for(PlayerDetailSingleMatchDTO playerDetailSingleMatchDTO:playerDetailSingleMatchDTOS){
-            bulkRequest.add(client.prepareIndex(Constants.INDEX_NAME, Constants.TYPE_PLAYER_MATCH_NAME, playerDetailSingleMatchDTO.getAccountId()+"_"+playerDetailSingleMatchDTO.getMatchId())
+        for(PlayerDetailSingleMatchTemplate playerDetailSingleMatchTemplate : playerDetailSingleMatchTemplates){
+            bulkRequest.add(client.prepareIndex(Constants.INDEX_NAME, Constants.TYPE_PLAYER_MATCH_NAME, playerDetailSingleMatchTemplate.getAccountId()+"_"+ playerDetailSingleMatchTemplate.getMatchId())
                     .setSource(jsonBuilder()
                             .startObject()
-                            .field("accountid", playerDetailSingleMatchDTO.getAccountId())
-                            .field("name", playerDetailSingleMatchDTO.getName())
-                            .field("winPlace", playerDetailSingleMatchDTO.getWinPlace())
-                            .field("matchId",playerDetailSingleMatchDTO.getMatchId())
-                            .field("kills",playerDetailSingleMatchDTO.getKills())
-                            .field("killStreaks",playerDetailSingleMatchDTO.getKillStreaks())
-                            .field("damageDealt",playerDetailSingleMatchDTO.getDamageDealt())
-                            .field("headshotKills",playerDetailSingleMatchDTO.getHeadshotKills())
-                            .field("winPointsDelta",playerDetailSingleMatchDTO.getWinPointsDelta())
-                            .field("matchTime",playerDetailSingleMatchDTO.getMatchTime())
+                            .field("accountid", playerDetailSingleMatchTemplate.getAccountId())
+                            .field("name", playerDetailSingleMatchTemplate.getName())
+                            .field("winPlace", playerDetailSingleMatchTemplate.getWinPlace())
+                            .field("matchId", playerDetailSingleMatchTemplate.getMatchId())
+                            .field("kills", playerDetailSingleMatchTemplate.getKills())
+                            .field("killStreaks", playerDetailSingleMatchTemplate.getKillStreaks())
+                            .field("damageDealt", playerDetailSingleMatchTemplate.getDamageDealt())
+                            .field("headshotKills", playerDetailSingleMatchTemplate.getHeadshotKills())
+                            .field("winPointsDelta", playerDetailSingleMatchTemplate.getWinPointsDelta())
+                            .field("matchTime", playerDetailSingleMatchTemplate.getMatchTime())
                             .endObject()
                     )
             );
@@ -122,9 +122,21 @@ public class ElasticSearchApiService {
     }
 
     public SearchHits queryDocuments(SearchParam searchParam){
+
+        //处理排序
+        SortBuilder sortBuilder = null;
+        if(searchParam.getOrderBy()!=null&&!"".equals(searchParam.getOrderBy())){
+            sortBuilder = SortBuilders.fieldSort(searchParam.getOrderBy());
+            if(searchParam.getOrderType()!=null&&!"".equals(searchParam.getOrderType())){
+                sortBuilder.order(SortOrder.fromString(searchParam.getOrderType()));
+            }else {
+                sortBuilder.order(SortOrder.DESC);
+            }
+        }
+
         BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
         if(searchParam.getName()!=null&&!"".equals(searchParam.getName())){
-            boolQuery.filter(QueryBuilders.termQuery("name",searchParam.getName()));
+            boolQuery.filter(QueryBuilders.termQuery("name",searchParam.getName().toLowerCase()));
         }
         if(searchParam.getKills()!=null){
             boolQuery.filter(QueryBuilders.termQuery("kills",searchParam.getKills()));
@@ -133,11 +145,17 @@ public class ElasticSearchApiService {
             String mDate = searchParam.getMatchDate();
             boolQuery.filter(QueryBuilders.rangeQuery("matchTime").gt(mDate+" 00:00:00").lt(mDate+" 23:59:59"));
         }
+
+        //组装请求参数
         SearchRequestBuilder requestBuilder = client.prepareSearch(Constants.INDEX_NAME)
                 .setTypes(Constants.TYPE_PLAYER_MATCH_NAME)
                 .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                 .setQuery(boolQuery)
-                .setFrom(0).setSize(60).setExplain(false);
+                .setFrom(0).setSize(10000).setExplain(false);
+
+        if(sortBuilder!=null){
+            requestBuilder.addSort(sortBuilder);
+        }
         SearchHits searchHits = requestBuilder.get().getHits();
 
         return searchHits;

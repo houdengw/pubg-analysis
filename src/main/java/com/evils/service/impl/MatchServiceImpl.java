@@ -4,6 +4,7 @@ import com.evils.base.ElasticSearchApiService;
 import com.evils.entity.dto.PlayerDetailSingleMatchDTO;
 import com.evils.entity.form.SearchParam;
 import com.evils.service.IMatchService;
+import com.evils.service.ServiceListResult;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,12 +27,11 @@ public class MatchServiceImpl implements IMatchService {
     private ElasticSearchApiService elasticSearchApiService;
 
     @Override
-    public List<PlayerDetailSingleMatchDTO> getMatches(SearchParam searchParam) {
+    public ServiceListResult<PlayerDetailSingleMatchDTO> getMatches(SearchParam searchParam) {
         SearchHits searchHits = elasticSearchApiService.queryDocuments(searchParam);
         List<PlayerDetailSingleMatchDTO> playerDetailSingleMatchDTOList = new ArrayList<>();
         for(SearchHit searchHit:searchHits){
             PlayerDetailSingleMatchDTO playerDetailSingleMatchDTO = new PlayerDetailSingleMatchDTO();
-            playerDetailSingleMatchDTO.setAccountId(String.valueOf(searchHit.getSource().get("accountid")));
             playerDetailSingleMatchDTO.setName(String.valueOf(searchHit.getSource().get("name")));
             playerDetailSingleMatchDTO.setKills(Integer.parseInt(String.valueOf(searchHit.getSource().get("kills"))));
             playerDetailSingleMatchDTO.setKillStreaks(Integer.parseInt(String.valueOf(searchHit.getSource().get("killStreaks"))));
@@ -42,6 +42,6 @@ public class MatchServiceImpl implements IMatchService {
             playerDetailSingleMatchDTO.setWinPlace(Integer.parseInt(String.valueOf(searchHit.getSource().get("winPlace"))));
             playerDetailSingleMatchDTOList.add(playerDetailSingleMatchDTO);
         }
-        return playerDetailSingleMatchDTOList;
+        return new ServiceListResult<PlayerDetailSingleMatchDTO>(searchHits.getTotalHits(),playerDetailSingleMatchDTOList);
     }
 }

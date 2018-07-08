@@ -149,8 +149,8 @@
                 <includes>
                     <include>application-${profileActive}.properties</include>
                     <include>application.properties</include>
-                    <include>static/*</include>
-                    <include>templates/*</include>
+                    <include>static/**</include>
+                    <include>templates/**</include>
                 </includes>
                 <filtering>true</filtering>
             </resource>

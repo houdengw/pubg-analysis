@@ -8,9 +8,8 @@ import com.evils.base.ApiResponse;
 import com.evils.base.ElasticSearchApiService;
 import com.evils.base.HttpApiService;
 import com.evils.base.HttpUrlConnectionApiService;
-import com.evils.entity.dto.PlayerDetailSingleMatchDTO;
+import com.evils.entity.PlayerDetailSingleMatchTemplate;
 import com.evils.entity.form.SearchParam;
-import com.evils.utils.Constants;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -86,7 +85,7 @@ public class HttpApiServiceTests extends PubgAnalysisApplicationTests {
     public void test2() throws IOException {
         String playerName = "DuiZhangBie_KQ";
         ArrayList<String> matchList = new ArrayList<>();
-        ArrayList<PlayerDetailSingleMatchDTO> matchesByPlayerList = new ArrayList<PlayerDetailSingleMatchDTO>();
+        ArrayList<PlayerDetailSingleMatchTemplate> matchesByPlayerList = new ArrayList<PlayerDetailSingleMatchTemplate>();
         String url = "https://api.playbattlegrounds.com/shards/pc-as/players?filter[playerNames]="+playerName;
         long startTime=System.currentTimeMillis();
         ApiResponse apiResponse = HttpUrlConnectionApiService.doGet(url, null);
@@ -97,15 +96,15 @@ public class HttpApiServiceTests extends PubgAnalysisApplicationTests {
 
         long analysiStartTime=System.currentTimeMillis();
         for (int i = 0; i < matches.size(); i++) {
-            PlayerDetailSingleMatchDTO playerDetailSingleMatchDTO = new PlayerDetailSingleMatchDTO();
+            PlayerDetailSingleMatchTemplate playerDetailSingleMatchTemplate = new PlayerDetailSingleMatchTemplate();
             JSONObject match = matches.getJSONObject(i);
             String matchId = match.getString("id");
-            playerDetailSingleMatchDTO.setMatchId(matchId);
+            playerDetailSingleMatchTemplate.setMatchId(matchId);
             String matchUrl = "https://api.playbattlegrounds.com/shards/pc-as/matches/" + matchId;
             ApiResponse matchApiResponse = HttpUrlConnectionApiService.doGet(matchUrl, null);
             JSONObject matchDetail = JSON.parseObject(matchApiResponse.getData()+"");
             String matchTime = matchDetail.getJSONObject("data").getJSONObject("attributes").getString("createdAt");
-            playerDetailSingleMatchDTO.setMatchTime(utc2Local(matchTime,"yyyy-MM-dd'T'HH:mm:ss'Z'","yyyy-MM-dd HH:mm:ss"));
+            playerDetailSingleMatchTemplate.setMatchTime(utc2Local(matchTime,"yyyy-MM-dd'T'HH:mm:ss'Z'","yyyy-MM-dd HH:mm:ss"));
             JSONArray players = matchDetail.getJSONArray("included");
 
 
@@ -114,24 +113,24 @@ public class HttpApiServiceTests extends PubgAnalysisApplicationTests {
                 if("participant".equals(player.getString("type"))){
                     if(playerName.equals(player.getJSONObject("attributes").getJSONObject("stats").getString("name"))){
                         JSONObject stats = player.getJSONObject("attributes").getJSONObject("stats");
-                        playerDetailSingleMatchDTO.setName(stats.getString("name"));
-                        playerDetailSingleMatchDTO.setDamageDealt(stats.getString("damageDealt"));
-                        playerDetailSingleMatchDTO.setHeadshotKills(Integer.parseInt(stats.getString("headshotKills")));
-                        playerDetailSingleMatchDTO.setKills(Integer.parseInt(stats.getString("kills")));
-                        playerDetailSingleMatchDTO.setKillStreaks(Integer.parseInt(stats.getString("killStreaks")));
-                        playerDetailSingleMatchDTO.setAccountId(stats.getString("playerId"));
-                        playerDetailSingleMatchDTO.setWinPlace(Integer.parseInt(stats.getString("winPlace")));
+                        playerDetailSingleMatchTemplate.setName(stats.getString("name"));
+                        playerDetailSingleMatchTemplate.setDamageDealt(stats.getString("damageDealt"));
+                        playerDetailSingleMatchTemplate.setHeadshotKills(Integer.parseInt(stats.getString("headshotKills")));
+                        playerDetailSingleMatchTemplate.setKills(Integer.parseInt(stats.getString("kills")));
+                        playerDetailSingleMatchTemplate.setKillStreaks(Integer.parseInt(stats.getString("killStreaks")));
+                        playerDetailSingleMatchTemplate.setAccountId(stats.getString("playerId"));
+                        playerDetailSingleMatchTemplate.setWinPlace(Integer.parseInt(stats.getString("winPlace")));
 
                     }
                 }
             }
-            matchesByPlayerList.add(playerDetailSingleMatchDTO);
+            matchesByPlayerList.add(playerDetailSingleMatchTemplate);
         }
         long analysiEndTime=System.currentTimeMillis();
         System.out.println("解析比赛json消耗时间： "+(analysiEndTime-analysiStartTime)+"ms");
 
-        for(PlayerDetailSingleMatchDTO playerDetailSingleMatchDTO :matchesByPlayerList){
-            System.out.println("比赛时间:"+playerDetailSingleMatchDTO.getMatchTime()+" 击杀:"+playerDetailSingleMatchDTO.getKills()+" 击倒:"+playerDetailSingleMatchDTO.getKillStreaks()+" 伤害:"+playerDetailSingleMatchDTO.getDamageDealt()+" 排名:"+playerDetailSingleMatchDTO.getWinPlace());
+        for(PlayerDetailSingleMatchTemplate playerDetailSingleMatchTemplate :matchesByPlayerList){
+            System.out.println("比赛时间:"+ playerDetailSingleMatchTemplate.getMatchTime()+" 击杀:"+ playerDetailSingleMatchTemplate.getKills()+" 击倒:"+ playerDetailSingleMatchTemplate.getKillStreaks()+" 伤害:"+ playerDetailSingleMatchTemplate.getDamageDealt()+" 排名:"+ playerDetailSingleMatchTemplate.getWinPlace());
 
         }
 
