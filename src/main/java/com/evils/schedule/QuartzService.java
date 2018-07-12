@@ -102,30 +102,6 @@ public class QuartzService {
                     if (playerName.equals(player.getJSONObject("attributes").getJSONObject("stats").getString("name"))) {
                         JSONObject stats = player.getJSONObject("attributes").getJSONObject("stats");
                         playerDetailSingleMatchTemplate = objectMapper.readValue(stats.toJSONString(),PlayerDetailSingleMatchTemplate.class);
-//                        playerDetailSingleMatchTemplate.setAccountId(stats.getString("playerId"));
-//                        playerDetailSingleMatchTemplate.setName(stats.getString("name"));
-//                        playerDetailSingleMatchTemplate.setHeals(stats.getInteger("heals"));
-//                        playerDetailSingleMatchTemplate.setAssists(stats.getInteger("assists"));
-//                        playerDetailSingleMatchTemplate.setBoosts(stats.getInteger("boosts"));
-//                        playerDetailSingleMatchTemplate.setKills(stats.getInteger("kills"));
-//                        playerDetailSingleMatchTemplate.setKillPlace(stats.getInteger("killPlace"));
-//                        playerDetailSingleMatchTemplate.setKillPoints(stats.getLong("killPoints"));
-//                        playerDetailSingleMatchTemplate.setKillPointsDelta(stats.getDouble("killPointsDelta"));
-//                        playerDetailSingleMatchTemplate.setLongestKill(stats.getDouble("longestKill"));
-//                        playerDetailSingleMatchTemplate.setKillStreaks(stats.getInteger("killStreaks"));
-//                        playerDetailSingleMatchTemplate.setRoadKills(stats.getInteger("roadKills"));
-//                        playerDetailSingleMatchTemplate.setHeadshotKills(stats.getInteger("headshotKills"));
-//                        playerDetailSingleMatchTemplate.setDamageDealt(stats.getDouble("damageDealt"));
-//                        playerDetailSingleMatchTemplate.setRideDistance(stats.getDouble("rideDistance"));
-//                        playerDetailSingleMatchTemplate.setSwimDistance(stats.getDouble("swimDistance"));
-//                        playerDetailSingleMatchTemplate.setWalkDistance(stats.getDouble("walkDistance"));
-//                        playerDetailSingleMatchTemplate.setTimeSurvived(stats.getDouble("timeSurvived"));
-//                        playerDetailSingleMatchTemplate.setVehicleDestroys(stats.getInteger("vehicleDestroys"));
-//                        playerDetailSingleMatchTemplate.setWeaponsAcquired(stats.getInteger("weaponsAcquired"));
-//                        playerDetailSingleMatchTemplate.setWinPoints(stats.getLong("winPoints"));
-//                        playerDetailSingleMatchTemplate.setWinPointsDelta(stats.getDouble("winPointsDelta"));
-//                        playerDetailSingleMatchTemplate.setWinPlace(Integer.parseInt(stats.getString("winPlace")));
-
                     }
                 }
             }
