@@ -1,23 +1,105 @@
 {
-  "settings" : {
-    "number_of_shards" : 3,
-    "number_of_replicas" : 0
-
+  "settings": {
+    "number_of_shards": 3,
+    "number_of_replicas": 0
   },
-  "mappings" : {
-    "playersinglematch" : {
-      "properties" : {
-        "uid":{"type":"text"},
-        "accountid":{"type":"text","fielddata": true},
-        "name" : { "type" : "text","analyzer": "english","fielddata": true},
-        "winPlace" : { "type" : "integer"},
-        "matchId" : { "type" : "text"},
-        "kills" : { "type" : "integer"},
-        "killStreaks" : { "type" : "integer"},
-        "damageDealt" : { "type" : "text","fielddata": true},
-        "headshotKills" : { "type" : "integer"},
-        "winPointsDelta" : { "type" : "text","fielddata": true},
-        "matchTime" :{"type":"date","format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis"}
+  "mappings": {
+    "playersinglematch": {
+      "properties": {
+        "playerId": {
+          "type": "text",
+          "index": "not_analyzed",
+          "fielddata": true
+        },
+        "name": {
+          "type": "text",
+          "index": "not_analyzed",
+          "fielddata": true
+        },
+        "matchId": {
+          "type": "text",
+          "index": "not_analyzed"
+        },
+        "heals": {
+          "type": "integer"
+        },
+        "assists": {
+          "type": "integer"
+        },
+        "boosts": {
+          "type": "integer"
+        },
+        "kills": {
+          "type": "integer"
+        },
+        "killPlace": {
+          "type": "integer"
+        },
+        "killPoints": {
+          "type": "long"
+        },
+        "killPointsDelta": {
+          "type": "double"
+        },
+        "longestKill": {
+          "type": "double"
+        },
+        "killStreaks": {
+          "type": "integer"
+        },
+        "roadKills": {
+          "type": "integer"
+        },
+        "headshotKills": {
+          "type": "integer"
+        },
+        "damageDealt": {
+          "type": "double"
+        },
+        "rideDistance": {
+          "type": "double"
+        },
+        "swimDistance": {
+          "type": "double"
+        },
+        "walkDistance": {
+          "type": "double"
+        },
+        "timeSurvived": {
+          "type": "double"
+        },
+        "vehicleDestroys": {
+          "type": "integer"
+        },
+        "weaponsAcquired": {
+          "type": "integer"
+        },
+        "winPlace": {
+          "type": "integer"
+        },
+        "winPoints": {
+          "type": "long"
+        },
+        "winPointsDelta": {
+          "type": "double"
+        },
+        "gameMode": {
+          "type": "keyword"
+        },
+        "mapName": {
+          "type": "keyword"
+        },
+        "shardId": {
+          "type": "keyword"
+        },
+        "teammate": {
+          "type": "text",
+          "fielddata": true
+        },
+        "matchTime": {
+          "type": "date",
+          "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis"
+        }
       }
     }
   }
