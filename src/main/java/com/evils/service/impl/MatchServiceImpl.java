@@ -40,6 +40,8 @@ public class MatchServiceImpl implements IMatchService {
             playerDetailSingleMatchDTO.setHeadshotKills(Integer.parseInt(String.valueOf(searchHit.getSource().get("headshotKills"))));
             playerDetailSingleMatchDTO.setDamageDealt(String.valueOf(searchHit.getSource().get("damageDealt")));
             playerDetailSingleMatchDTO.setWinPlace(Integer.parseInt(String.valueOf(searchHit.getSource().get("winPlace"))));
+            playerDetailSingleMatchDTO.setGameMode(String.valueOf(searchHit.getSource().get("gameMode")));
+            playerDetailSingleMatchDTO.setMapName(String.valueOf(searchHit.getSource().get("mapName")));
             playerDetailSingleMatchDTOList.add(playerDetailSingleMatchDTO);
         }
         return new ServiceListResult<PlayerDetailSingleMatchDTO>(searchHits.getTotalHits(),playerDetailSingleMatchDTOList);

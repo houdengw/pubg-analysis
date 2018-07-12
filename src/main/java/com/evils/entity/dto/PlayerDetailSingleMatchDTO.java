@@ -17,6 +17,8 @@ public class PlayerDetailSingleMatchDTO {
     private String winPointsDelta;
     private String matchTime;
     private int winPlace;
+    private String gameMode;
+    private String mapName;
 
     public String getName() {
         return name;
@@ -80,5 +82,21 @@ public class PlayerDetailSingleMatchDTO {
 
     public void setWinPlace(int winPlace) {
         this.winPlace = winPlace;
+    }
+
+    public String getGameMode() {
+        return gameMode;
+    }
+
+    public void setGameMode(String gameMode) {
+        this.gameMode = gameMode;
+    }
+
+    public String getMapName() {
+        return mapName;
+    }
+
+    public void setMapName(String mapName) {
+        this.mapName = mapName;
     }
 }

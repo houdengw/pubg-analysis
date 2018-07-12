@@ -12,6 +12,7 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHits;
@@ -42,6 +43,9 @@ public class ElasticSearchApiService {
     private Logger logger = LoggerFactory.getLogger(ElasticSearchApiService.class);
 
     ObjectMapper mapper = new ObjectMapper();
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
 
     @Autowired
@@ -95,21 +99,8 @@ public class ElasticSearchApiService {
         BulkRequestBuilder bulkRequest = client.prepareBulk();
 
         for(PlayerDetailSingleMatchTemplate playerDetailSingleMatchTemplate : playerDetailSingleMatchTemplates){
-            bulkRequest.add(client.prepareIndex(Constants.INDEX_NAME, Constants.TYPE_PLAYER_MATCH_NAME, playerDetailSingleMatchTemplate.getAccountId()+"_"+ playerDetailSingleMatchTemplate.getMatchId())
-                    .setSource(jsonBuilder()
-                            .startObject()
-                            .field("accountid", playerDetailSingleMatchTemplate.getAccountId())
-                            .field("name", playerDetailSingleMatchTemplate.getName())
-                            .field("winPlace", playerDetailSingleMatchTemplate.getWinPlace())
-                            .field("matchId", playerDetailSingleMatchTemplate.getMatchId())
-                            .field("kills", playerDetailSingleMatchTemplate.getKills())
-                            .field("killStreaks", playerDetailSingleMatchTemplate.getKillStreaks())
-                            .field("damageDealt", playerDetailSingleMatchTemplate.getDamageDealt())
-                            .field("headshotKills", playerDetailSingleMatchTemplate.getHeadshotKills())
-                            .field("winPointsDelta", playerDetailSingleMatchTemplate.getWinPointsDelta())
-                            .field("matchTime", playerDetailSingleMatchTemplate.getMatchTime())
-                            .endObject()
-                    )
+            bulkRequest.add(client.prepareIndex(Constants.INDEX_NAME, Constants.TYPE_PLAYER_MATCH_NAME, playerDetailSingleMatchTemplate.getId())
+                    .setSource(objectMapper.writeValueAsBytes(playerDetailSingleMatchTemplate), XContentType.JSON)
             );
 
         }

@@ -8,9 +8,10 @@ import com.evils.base.ElasticSearchApiService;
 import com.evils.base.HttpApiService;
 import com.evils.base.HttpUrlConnectionApiService;
 import com.evils.entity.Player;
-import com.evils.entity.dto.PlayerDetailSingleMatchDTO;
+import com.evils.entity.PlayerDetailSingleMatchTemplate;
 import com.evils.service.impl.PlayerServiceImpl;
 import com.evils.utils.Constants;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,9 @@ public class QuartzService {
     private ElasticSearchApiService elasticSearchApiService;
 
     @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
     private PlayerServiceImpl playerService;
 
     private Logger logger = LoggerFactory.getLogger(QuartzService.class);
@@ -46,6 +50,7 @@ public class QuartzService {
     /**
      * 定时处理库中所有玩家的比赛数据到ES库中
      * @throws IOException
+     *
      */
     @Scheduled(cron = "0 0/3 * * * ?")
     private void initExistedUsersMatches() throws IOException {
@@ -60,6 +65,7 @@ public class QuartzService {
     }
 
 
+
     /**
      * 获取pubg接口数据并传输到数据到ES
      * @param playerName
@@ -67,7 +73,7 @@ public class QuartzService {
      */
     public void transferDataToES(String playerName) throws IOException {
         ArrayList<String> matchList = new ArrayList<>();
-        ArrayList<PlayerDetailSingleMatchDTO> matchesByPlayerList = new ArrayList<PlayerDetailSingleMatchDTO>();
+        ArrayList<PlayerDetailSingleMatchTemplate> matchesByPlayerList = new ArrayList<PlayerDetailSingleMatchTemplate>();
 
         //1.请求API获取玩家最近的比赛
         String url = Constants.PUBG_PLAYER_API + playerName;
@@ -80,16 +86,12 @@ public class QuartzService {
 
         //2.遍历所有比赛获取玩家在这场比赛中的数据,并组装数据
         for (Iterator matchIterator = matches.iterator(); matchIterator.hasNext();) {
-            PlayerDetailSingleMatchDTO playerDetailSingleMatchDTO = new PlayerDetailSingleMatchDTO();
+            PlayerDetailSingleMatchTemplate playerDetailSingleMatchTemplate = new PlayerDetailSingleMatchTemplate();
             JSONObject match = (JSONObject) matchIterator.next();
             String matchId = match.getString("id");
-            playerDetailSingleMatchDTO.setMatchId(matchId);
             String matchUrl = Constants.PUBG_MATCH_API + matchId;
             ApiResponse matchApiResponse = HttpUrlConnectionApiService.doGet(matchUrl, null);
             JSONObject matchDetail = JSON.parseObject(matchApiResponse.getData() + "");
-            String matchTime = matchDetail.getJSONObject("data").getJSONObject("attributes").getString("createdAt");
-            //将API返回的UTC时间转为本地时间
-            playerDetailSingleMatchDTO.setMatchTime(utc2Local(matchTime, "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd HH:mm:ss"));
             JSONArray players = matchDetail.getJSONArray("included");
 
 
@@ -99,18 +101,45 @@ public class QuartzService {
                 if ("participant".equals(player.getString("type"))) {
                     if (playerName.equals(player.getJSONObject("attributes").getJSONObject("stats").getString("name"))) {
                         JSONObject stats = player.getJSONObject("attributes").getJSONObject("stats");
-                        playerDetailSingleMatchDTO.setName(stats.getString("name"));
-                        playerDetailSingleMatchDTO.setDamageDealt(stats.getString("damageDealt"));
-                        playerDetailSingleMatchDTO.setHeadshotKills(Integer.parseInt(stats.getString("headshotKills")));
-                        playerDetailSingleMatchDTO.setKills(Integer.parseInt(stats.getString("kills")));
-                        playerDetailSingleMatchDTO.setKillStreaks(Integer.parseInt(stats.getString("killStreaks")));
-                        playerDetailSingleMatchDTO.setAccountId(stats.getString("playerId"));
-                        playerDetailSingleMatchDTO.setWinPlace(Integer.parseInt(stats.getString("winPlace")));
+                        playerDetailSingleMatchTemplate = objectMapper.readValue(stats.toJSONString(),PlayerDetailSingleMatchTemplate.class);
+//                        playerDetailSingleMatchTemplate.setAccountId(stats.getString("playerId"));
+//                        playerDetailSingleMatchTemplate.setName(stats.getString("name"));
+//                        playerDetailSingleMatchTemplate.setHeals(stats.getInteger("heals"));
+//                        playerDetailSingleMatchTemplate.setAssists(stats.getInteger("assists"));
+//                        playerDetailSingleMatchTemplate.setBoosts(stats.getInteger("boosts"));
+//                        playerDetailSingleMatchTemplate.setKills(stats.getInteger("kills"));
+//                        playerDetailSingleMatchTemplate.setKillPlace(stats.getInteger("killPlace"));
+//                        playerDetailSingleMatchTemplate.setKillPoints(stats.getLong("killPoints"));
+//                        playerDetailSingleMatchTemplate.setKillPointsDelta(stats.getDouble("killPointsDelta"));
+//                        playerDetailSingleMatchTemplate.setLongestKill(stats.getDouble("longestKill"));
+//                        playerDetailSingleMatchTemplate.setKillStreaks(stats.getInteger("killStreaks"));
+//                        playerDetailSingleMatchTemplate.setRoadKills(stats.getInteger("roadKills"));
+//                        playerDetailSingleMatchTemplate.setHeadshotKills(stats.getInteger("headshotKills"));
+//                        playerDetailSingleMatchTemplate.setDamageDealt(stats.getDouble("damageDealt"));
+//                        playerDetailSingleMatchTemplate.setRideDistance(stats.getDouble("rideDistance"));
+//                        playerDetailSingleMatchTemplate.setSwimDistance(stats.getDouble("swimDistance"));
+//                        playerDetailSingleMatchTemplate.setWalkDistance(stats.getDouble("walkDistance"));
+//                        playerDetailSingleMatchTemplate.setTimeSurvived(stats.getDouble("timeSurvived"));
+//                        playerDetailSingleMatchTemplate.setVehicleDestroys(stats.getInteger("vehicleDestroys"));
+//                        playerDetailSingleMatchTemplate.setWeaponsAcquired(stats.getInteger("weaponsAcquired"));
+//                        playerDetailSingleMatchTemplate.setWinPoints(stats.getLong("winPoints"));
+//                        playerDetailSingleMatchTemplate.setWinPointsDelta(stats.getDouble("winPointsDelta"));
+//                        playerDetailSingleMatchTemplate.setWinPlace(Integer.parseInt(stats.getString("winPlace")));
 
                     }
                 }
             }
-            matchesByPlayerList.add(playerDetailSingleMatchDTO);
+
+            JSONObject matchAttributes = matchDetail.getJSONObject("data").getJSONObject("attributes");
+            String matchTime = matchAttributes.getString("createdAt");
+            playerDetailSingleMatchTemplate.setMatchId(matchId);
+            //将API返回的UTC时间转为本地时间
+            playerDetailSingleMatchTemplate.setMatchTime(utc2Local(matchTime, "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd HH:mm:ss"));
+            playerDetailSingleMatchTemplate.setMapName(matchAttributes.getString("mapName"));
+            playerDetailSingleMatchTemplate.setShardId(matchAttributes.getString("shardId"));
+            playerDetailSingleMatchTemplate.setGameMode(matchAttributes.getString("gameMode"));
+            playerDetailSingleMatchTemplate.setId(playerDetailSingleMatchTemplate.getPlayerId()+"_"+playerDetailSingleMatchTemplate.getMatchId());
+            matchesByPlayerList.add(playerDetailSingleMatchTemplate);
         }
 
         //3.将组装好的比赛数据传输到ES
